@@ -1,0 +1,109 @@
+> Problem: [10. 正则表达式匹配](https://leetcode.cn/problems/regular-expression-matching/description/)
+
+[TOC]
+
+# 思路
+
+思路来源
+**[「手画图解」动态规划，需要仔细的分情况讨论](https://leetcode.cn/problems/regular-expression-matching/solutions/296114/shou-hui-tu-jie-wo-tai-nan-liao-by-hyj8/)**
+
+按灵神定义dfs的方式，按照[@笨猪爆破组](/u/xiao_ben_zhu)题解的思路写的记忆化搜索版本。
+后续翻译成递归可以参考笨猪爆破组的题解
+
+> dfs是从右向左递，从左向右归
+> 翻译成递推(动态规划)就是只保留从左向右归的部分
+
+**注意：题目保证了每次出现字符 * 时，前面都匹配到有效的字符**， 也就是不用考虑'*'开头的情况
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> $O(mn)$
+
+空间复杂度:
+
+> $O(mn)$
+
+# Code
+
+* [Python3带注释版]
+
+```Python
+class Solution:
+    # 保证每次出现字符 * 时，前面都匹配到有效的字符
+    def isMatch(self, s: str, p: str) -> bool:
+        m, n = len(s), len(p)
+        # dfs(i, j)表示s[0, i]和p[0, j]是否匹配
+        # 即s[:i + 1]和p[:j + 1]是否匹配
+        @cache
+        def dfs(i: int, j: int) -> bool:
+            if i < 0: # s消耗完
+                if j < 0: # p也消耗完，表示匹配
+                    return True
+                if p[j] != '*': # 否则如果p[j]不是'*', 肯定不匹配
+                    return False
+                return dfs(i, j - 2) # p[j]不是'*', 让p干掉'*'和'*'前面一个字符消掉
+            elif j < 0: # i >= 0 and j < 0, p消耗完了s还没有，肯定不匹配
+                return False
+
+            # 其他语言记忆化位置
+            # if memo[i][j]更新过: return memo[i][j]
+            
+            # case1: s[i] == p[j], 即当前字符匹配，消掉，然后判断子问题
+            if s[i] == p[j] or p[j] == '.': 
+                return dfs(i - 1, j - 1)
+            
+            # case2: s[i] != p[j]时：
+            # case2.1 p[j] == '*'
+            elif p[j] == '*':  # p[j - 1]表示'*'前一个字符
+                # 如果p[j] == '*' 且 s[i] 和 p[j - 1]匹配
+                if s[i] == p[j - 1] or p[j - 1] == '.':
+                    # 需要考虑三种情况
+                    # p[j]的'*'让p[j - 1]消失 dfs(i, j - 2)
+                    # p[j]的'*'让p[j - 1]重复1次, 正好就和s[i]匹配了, 直接下一个子问题dfs(i - 1, j - 2)
+                    # p[j]的'*'让p[j - 1]重复>=2次, 消掉s[i], 继续子问题 dfs(i - 1, j)
+                    return dfs(i, j - 2) or dfs(i - 1, j - 2) or dfs(i - 1, j)
+                # 如果p[j] == '*' 且 s[i] 和 p[j - 1]不匹配
+                else:
+                    return dfs(i, j - 2)
+            # case2.2 p[j]不是'*', 肯定不匹配
+            else:  
+                return False
+        return dfs(m - 1, n - 1)
+```
+
+* [Python3无注释版]
+
+```Python
+class Solution:
+    def isMatch(self, s: str, p: str) -> bool:
+        m, n = len(s), len(p)
+        @cache
+        def dfs(i: int, j: int) -> bool:
+            if i < 0: 
+                if j < 0: 
+                    return True
+                if p[j] != '*': 
+                    return False
+                return dfs(i, j - 2)
+            elif j < 0: 
+                return False
+            
+            if s[i] == p[j] or p[j] == '.': 
+                return dfs(i - 1, j - 1)
+            
+            elif p[j] == '*':  
+                if s[i] == p[j - 1] or p[j - 1] == '.':
+                    return dfs(i, j - 2) or dfs(i - 1, j - 2) or dfs(i - 1, j)
+                else:
+                    return dfs(i, j - 2)
+            else:  
+                return False
+        return dfs(m - 1, n - 1)
+```
+
