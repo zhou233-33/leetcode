@@ -1,6 +1,7 @@
 package leetcode
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -53,12 +54,39 @@ import (
 
 // leetcode submit region begin(Prohibit modification and deletion)
 func isMatch(s string, p string) bool {
+	f := make([][]bool, len(s)+1)
+	for i := 0; i <= len(s); i++ {
+		f[i] = make([]bool, len(p)+1)
+	}
+	f[0][0] = true
 
+	for i := 0; i <= len(s); i++ {
+		for j := 1; j <= len(p); j++ {
+			if i == 0 {
+				if p[j-1] == '*' {
+					f[i][j] = f[i][j-2]
+				}
+				continue
+			}
+			if p[j-1] != '*' {
+				f[i][j] = f[i-1][j-1] && (s[i-1] == p[j-1] || p[j-1] == '.')
+			} else {
+				//没有字符匹配*
+				noMatch := f[i][j-2]
+				//有字符匹配*
+				match := f[i-1][j] && (s[i-1] == p[j-2] || p[j-2] == '.')
+				f[i][j] = noMatch || match
+			}
+		}
+	}
+	return f[len(s)][len(p)]
 }
 
-//leetcode submit region end(Prohibit modification and deletion
-//leetcode submit region end(Prohibit modification and deletion)
+// leetcode submit region end(Prohibit modification and deletion
+// leetcode submit region end(Prohibit modification and deletion)
 func TestRegularExpressionMatching(t *testing.T) {
+	s := "aa"
+	p := "a*"
+	fmt.Println(isMatch(s, p))
 
-    
 }
