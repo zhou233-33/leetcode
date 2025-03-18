@@ -1,6 +1,7 @@
 package leetcode
 
 import (
+	"container/heap"
 	"fmt"
 	"sync"
 	"testing"
@@ -89,34 +90,46 @@ func mergeTwoLists(list1 *ListNode, list2 *ListNode, resultChan chan<- *ListNode
 	}
 	resultChan <- res.Next
 }
+
+type priorityQueue []*ListNode
+
+func (p *priorityQueue) Len() int {
+	return len(*p)
+}
+func (p *priorityQueue) Less(i, j int) bool {
+	return (*p)[i].Val < (*p)[j].Val
+}
+func (p *priorityQueue) Swap(i, j int) {
+	(*p)[i], (*p)[j] = (*p)[j], (*p)[i]
+}
+func (p *priorityQueue) Push(x any) {
+	*p = append(*p, x.(*ListNode))
+}
+func (p *priorityQueue) Pop() any {
+	lastItem := (*p)[p.Len()-1]
+	*p = (*p)[:p.Len()-1]
+	return lastItem
+}
+
 func mergeKLists(lists []*ListNode) *ListNode {
-	var wg sync.WaitGroup
-	if len(lists) == 0 {
-		return nil
-	}
-	for len(lists) > 1 {
-		newLists := make([]*ListNode, 0)
-		resultChan := make(chan *ListNode, len(lists)/2)
-		for i := 0; i < len(lists); i = i + 2 {
-			//has two
-			if i+1 < len(lists) {
-				wg.Add(1)
-				go func(i int) {
-					mergeTwoLists(lists[i], lists[i+1], resultChan, &wg)
-				}(i)
-			} else {
-				//only one left
-				newLists = append(newLists, lists[i])
-			}
+	minQueue := &priorityQueue{}
+	//非空的队列头加入到优先队列当中
+	for _, item := range lists {
+		if item != nil {
+			heap.Push(minQueue, item)
 		}
-		wg.Wait()
-		close(resultChan)
-		for item := range resultChan {
-			newLists = append(newLists, item)
-		}
-		lists = newLists
 	}
-	return lists[0]
+	res := &ListNode{}
+	prefix := res
+	for minQueue.Len() > 0 {
+		minItem := heap.Pop(minQueue).(*ListNode)
+		prefix.Next = minItem
+		prefix = minItem
+		if minItem.Next != nil {
+			heap.Push(minQueue, minItem.Next)
+		}
+	}
+	return res.Next
 }
 
 //leetcode submit region end(Prohibit modification and deletion)
@@ -127,7 +140,11 @@ func TestMergeKSortedLists(t *testing.T) {
 	node3 := GenerateListNode([]int{2, 6})
 
 	v := mergeKLists([]*ListNode{node1, node2, node3})
-	fmt.Println(v)
+	for v != nil {
+		fmt.Print(v.Val)
+		v = v.Next
+	}
+
 }
 
 func GenerateListNode(n []int) *ListNode {
