@@ -2,6 +2,7 @@ package leetcode
 
 import (
 	"fmt"
+	"runtime"
 	"testing"
 )
 
@@ -102,6 +103,7 @@ func search(nums []int, target int) int {
 			continue
 		}
 	}
+	runtime.BlockProfile()
 	return -1
 }
 
