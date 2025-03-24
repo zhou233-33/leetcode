@@ -2,7 +2,6 @@ package leetcode
 
 import (
 	"fmt"
-	"runtime"
 	"testing"
 )
 
@@ -54,61 +53,35 @@ import (
 
 // leetcode submit region begin(Prohibit modification and deletion)
 func search(nums []int, target int) int {
-	if nums[0] > target && nums[len(nums)-1] < target && nums[0] > nums[len(nums)-1] {
-		return -1
-	}
-	if target == nums[0] {
-		return 0
-	}
-	if target == nums[len(nums)-1] {
-		return len(nums) - 1
-	}
-
+	head := nums[0]
+	tail := nums[len(nums)-1]
 	left := 0
 	right := len(nums) - 1
 	for left <= right {
-		midIndex := (left + right) / 2
-		midValue := nums[midIndex]
+		mid := (left + right) / 2
+		midValue := nums[mid]
 		if midValue == target {
-			return midIndex
+			return mid
 		}
-		if target > nums[0] {
-			if midValue < target {
-				if midValue >= nums[0] {
-					left = midIndex + 1
-					continue
-				}
-				if midValue <= nums[len(nums)-1] {
-					right = midIndex - 1
-					continue
-				}
+		if target >= head {
+			if midValue < target && midValue >= head {
+				left++
 			} else {
-				right = midIndex - 1
+				right--
 			}
-			continue
-		}
-		if target < nums[len(nums)-1] {
-			if midValue < target {
-				left = midIndex + 1
+		} else {
+			if midValue > target && midValue <= tail {
+				right--
 			} else {
-				if midValue >= nums[0] {
-					left = midIndex + 1
-					continue
-				}
-				if midValue <= nums[len(nums)-1] {
-					right = midIndex - 1
-					continue
-				}
+				left++
 			}
-			continue
 		}
 	}
-	runtime.BlockProfile()
 	return -1
 }
 
 //leetcode submit region end(Prohibit modification and deletion)
 
 func TestSearchInRotatedSortedArray(t *testing.T) {
-	fmt.Println(search([]int{1, 2, 3, 4, 5, 6}, 4))
+	fmt.Println(search([]int{4, 5, 6, 7, 0, 1, 2}, 3))
 }
