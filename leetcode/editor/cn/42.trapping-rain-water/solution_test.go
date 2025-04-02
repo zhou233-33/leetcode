@@ -56,37 +56,22 @@ func (s *Stack) Len() int {
 	return len(*s)
 }
 func trap(height []int) int {
-	valStack := Stack{}
-	indexStack := Stack{}
+	mStack := Stack{}
 	res := 0
-	for index, item := range height {
-		if valStack.Len() == 0 {
-			valStack.Push(item)
-			indexStack.Push(index)
+	for i, v := range height {
+		if len(mStack) == 0 || height[mStack.Top()] >= v {
+			mStack.Push(i)
 			continue
 		}
-		if valStack.Top() >= item {
-			valStack.Push(item)
-			indexStack.Push(index)
-			continue
+		prefixIndex := mStack.Pop()
+		for len(mStack) > 0 && height[mStack.Top()] < v {
+			res += (height[mStack.Top()] - height[prefixIndex]) * (i - mStack.Top() - 1)
+			prefixIndex = mStack.Pop()
 		}
-		preVal := 0
-		for valStack.Len() > 0 {
-			topVal := valStack.Top()
-			topIndex := indexStack.Top()
-			minVal := min(topVal, item)
-			res += (minVal - preVal) * (index - topIndex - 1)
-			if topVal < item {
-				valStack.Pop()
-				indexStack.Pop()
-			} else {
-				break
-			}
-			preVal = topVal
+		if mStack.Len() > 0 {
+			res += (v - height[prefixIndex]) * (i - mStack.Top() - 1)
 		}
-		valStack.Push(item)
-		indexStack.Push(index)
-
+		mStack.Push(i)
 	}
 	return res
 }
